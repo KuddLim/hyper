@@ -8,7 +8,7 @@ use h2::server::{Connection, Handshake, SendResponse};
 use h2::{Reason, RecvStream};
 use http::{Method, Request};
 use pin_project_lite::pin_project;
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 use tracing::{debug, trace, warn};
 
 use super::{ping, PipeToSendStream, SendBuf};
@@ -89,7 +89,7 @@ where
 {
     Handshaking {
         ping_config: ping::Config,
-        hs: Handshake<T, SendBuf<B::Data>>,
+        hs: Handshake<crate::common::io::Compat<T>, SendBuf<B::Data>>,
     },
     Serving(Serving<T, B>),
     Closed,
@@ -100,7 +100,7 @@ where
     B: Body,
 {
     ping: Option<(ping::Recorder, ping::Ponger)>,
-    conn: Connection<T, SendBuf<B::Data>>,
+    conn: Connection<crate::common::io::Compat<T>, SendBuf<B::Data>>,
     closing: Option<crate::Error>,
 }
 
@@ -132,7 +132,7 @@ where
         if config.enable_connect_protocol {
             builder.enable_connect_protocol();
         }
-        let handshake = builder.handshake(io);
+        let handshake = builder.handshake(crate::common::io::compat(io));
 
         let bdp = if config.adaptive_window {
             Some(config.initial_stream_window_size)

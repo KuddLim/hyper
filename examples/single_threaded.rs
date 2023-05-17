@@ -13,6 +13,10 @@ use std::marker::PhantomData;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+#[path = "../benches/support/mod.rs"]
+mod support;
+use support::TokioIo;
+
 struct Body {
     // Our Body type is !Send and !Sync:
     _marker: PhantomData<*const ()>,
@@ -64,6 +68,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Listening on http://{}", addr);
     loop {
         let (stream, _) = listener.accept().await?;
+        let io = TokioIo::new(stream);
 
         // For each connection, clone the counter to use in our service...
         let cnt = counter.clone();
@@ -77,7 +82,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::task::spawn_local(async move {
             if let Err(err) = http2::Builder::new(LocalExec)
-                .serve_connection(stream, service)
+                .serve_connection(io, service)
                 .await
             {
                 println!("Error serving connection: {:?}", err);

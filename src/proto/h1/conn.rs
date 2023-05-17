@@ -8,7 +8,7 @@ use bytes::{Buf, Bytes};
 use http::header::{HeaderValue, CONNECTION};
 use http::{HeaderMap, Method, Version};
 use httparse::ParserConfig;
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 use tracing::{debug, error, trace};
 
 use super::io::Buffered;
@@ -1037,12 +1037,13 @@ mod tests {
     #[bench]
     fn bench_read_head_short(b: &mut ::test::Bencher) {
         use super::*;
+        use crate::common::io::Compat;
         let s = b"GET / HTTP/1.1\r\nHost: localhost:8080\r\n\r\n";
         let len = s.len();
         b.bytes = len as u64;
 
         // an empty IO, we'll be skipping and using the read buffer anyways
-        let io = tokio_test::io::Builder::new().build();
+        let io = Compat(tokio_test::io::Builder::new().build());
         let mut conn = Conn::<_, bytes::Bytes, crate::proto::h1::ServerTransaction>::new(io);
         *conn.io.read_buf_mut() = ::bytes::BytesMut::from(&s[..]);
         conn.state.cached_headers = Some(HeaderMap::with_capacity(2));

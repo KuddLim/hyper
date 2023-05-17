@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use http::{Request, Response};
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 
 use super::super::dispatch;
 use crate::body::{Body, Incoming as IncomingBody};

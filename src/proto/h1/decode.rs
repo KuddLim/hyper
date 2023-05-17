@@ -430,7 +430,7 @@ mod tests {
     use super::*;
     use std::pin::Pin;
     use std::time::Duration;
-    use tokio::io::{AsyncRead, ReadBuf};
+    use crate::rt::{AsyncRead, ReadBuf};
 
     impl<'a> MemRead for &'a [u8] {
         fn read_mem(&mut self, _: &mut task::Context<'_>, len: usize) -> Poll<io::Result<Bytes>> {
@@ -450,7 +450,7 @@ mod tests {
         fn read_mem(&mut self, cx: &mut task::Context<'_>, len: usize) -> Poll<io::Result<Bytes>> {
             let mut v = vec![0; len];
             let mut buf = ReadBuf::new(&mut v);
-            ready!(Pin::new(self).poll_read(cx, &mut buf)?);
+            ready!(Pin::new(self).poll_read(cx, buf.unfilled())?);
             Poll::Ready(Ok(Bytes::copy_from_slice(&buf.filled())))
         }
     }
@@ -629,7 +629,7 @@ mod tests {
     async fn read_async(mut decoder: Decoder, content: &[u8], block_at: usize) -> String {
         let mut outs = Vec::new();
 
-        let mut ins = if block_at == 0 {
+        let mut ins = crate::common::io::compat(if block_at == 0 {
             tokio_test::io::Builder::new()
                 .wait(Duration::from_millis(10))
                 .read(content)
@@ -640,7 +640,7 @@ mod tests {
                 .wait(Duration::from_millis(10))
                 .read(&content[block_at..])
                 .build()
-        };
+        });
 
         let mut ins = &mut ins as &mut (dyn AsyncRead + Unpin);
 

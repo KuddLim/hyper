@@ -8,7 +8,7 @@ use futures_util::stream::StreamExt as _;
 use h2::client::{Builder, SendRequest};
 use h2::SendStream;
 use http::{Method, StatusCode};
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 use tracing::{debug, trace, warn};
 
 use super::{ping, H2Upgraded, PipeToSendStream, SendBuf};
@@ -111,7 +111,7 @@ where
     B::Data: Send + 'static,
 {
     let (h2_tx, mut conn) = new_builder(config)
-        .handshake::<_, SendBuf<B::Data>>(io)
+        .handshake::<_, SendBuf<B::Data>>(crate::common::io::compat(io))
         .await
         .map_err(crate::Error::new_h2)?;
 

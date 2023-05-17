@@ -6,7 +6,7 @@ use std::fmt;
 use bytes::Bytes;
 use http::{Request, Response};
 use httparse::ParserConfig;
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 
 use super::super::dispatch;
 use crate::body::{Body, Incoming as IncomingBody};

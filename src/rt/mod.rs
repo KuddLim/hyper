@@ -6,6 +6,10 @@
 //! to plug in other runtimes.
 
 pub mod bounds;
+mod io;
+
+//pub use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+pub use self::io::{Read as AsyncRead, ReadBuf, ReadBufCursor, Write as AsyncWrite};
 
 use std::{
     future::Future,

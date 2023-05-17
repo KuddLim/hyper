@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 
 use crate::body::{Body, Incoming as IncomingBody};
 use crate::common::{task, Future, Pin, Poll, Unpin};
@@ -334,7 +334,7 @@ impl Builder {
     /// # use hyper::{body::Incoming, Request, Response};
     /// # use hyper::service::Service;
     /// # use hyper::server::conn::http1::Builder;
-    /// # use tokio::io::{AsyncRead, AsyncWrite};
+    /// # use hyper::rt::{AsyncRead, AsyncWrite};
     /// # async fn run<I, S>(some_io: I, some_service: S)
     /// # where
     /// #     I: AsyncRead + AsyncWrite + Unpin + Send + 'static,

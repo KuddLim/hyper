@@ -45,8 +45,8 @@ use std::fmt;
 use std::io;
 use std::marker::Unpin;
 
+use crate::rt::{AsyncRead, AsyncWrite, ReadBufCursor};
 use bytes::Bytes;
-use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::sync::oneshot;
 #[cfg(any(feature = "http1", feature = "http2"))]
 use tracing::trace;
@@ -152,7 +152,7 @@ impl AsyncRead for Upgraded {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut task::Context<'_>,
-        buf: &mut ReadBuf<'_>,
+        buf: ReadBufCursor<'_>,
     ) -> Poll<io::Result<()>> {
         Pin::new(&mut self.io).poll_read(cx, buf)
     }
@@ -340,7 +340,9 @@ mod tests {
     fn upgraded_downcast() {
         let upgraded = Upgraded::new(Mock, Bytes::new());
 
-        let upgraded = upgraded.downcast::<std::io::Cursor<Vec<u8>>>().unwrap_err();
+        let upgraded = upgraded
+            .downcast::<crate::common::io::Compat<std::io::Cursor<Vec<u8>>>>()
+            .unwrap_err();
 
         upgraded.downcast::<Mock>().unwrap();
     }
@@ -352,7 +354,7 @@ mod tests {
         fn poll_read(
             self: Pin<&mut Self>,
             _cx: &mut task::Context<'_>,
-            _buf: &mut ReadBuf<'_>,
+            _buf: ReadBufCursor<'_>,
         ) -> Poll<io::Result<()>> {
             unreachable!("Mock::poll_read")
         }

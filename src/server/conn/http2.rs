@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use pin_project_lite::pin_project;
-use tokio::io::{AsyncRead, AsyncWrite};
+use crate::rt::{AsyncRead, AsyncWrite};
 
 use crate::body::{Body, Incoming as IncomingBody};
 use crate::common::{task, Future, Pin, Poll, Unpin};
