@@ -202,6 +202,7 @@ impl AddrIncoming {
 
     fn poll_next_(&mut self, cx: &mut task::Context<'_>) -> Poll<io::Result<AddrStream>> {
         // Check if a previous timeout is active that was set by IO errors.
+        println!("poll_next for addrincoming..");
         if let Some(ref mut to) = self.timeout {
             ready!(Pin::new(to).poll(cx));
         }
@@ -210,16 +211,20 @@ impl AddrIncoming {
         loop {
             match ready!(self.listener.poll_accept(cx)) {
                 Ok((socket, remote_addr)) => {
+                    println!("poll_next for addrincoming polled!");
                     if let Some(tcp_keepalive) = &self.tcp_keepalive_config.into_socket2() {
                         let sock_ref = socket2::SockRef::from(&socket);
                         if let Err(e) = sock_ref.set_tcp_keepalive(tcp_keepalive) {
                             trace!("error trying to set TCP keepalive: {}", e);
+                            println!("error trying to set TCP keepalive: {}", e);
                         }
                     }
                     if let Err(e) = socket.set_nodelay(self.tcp_nodelay) {
                         trace!("error trying to set TCP nodelay: {}", e);
+                        println!("error trying to set TCP nodelay: {}", e);
                     }
                     let local_addr = socket.local_addr()?;
+                    println!("got peer socket");
                     return Poll::Ready(Ok(AddrStream::new(socket, remote_addr, local_addr)));
                 }
                 Err(e) => {
@@ -227,6 +232,7 @@ impl AddrIncoming {
                     // accepting the next request.
                     if is_connection_error(&e) {
                         debug!("accepted connection already errored: {}", e);
+                        println!("accepted connection already errored: {}", e);
                         continue;
                     }
 
