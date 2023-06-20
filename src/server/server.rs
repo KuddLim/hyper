@@ -78,6 +78,7 @@ impl Server<AddrIncoming, ()> {
         let incoming = AddrIncoming::new(addr).unwrap_or_else(|e| {
             panic!("error binding to {}: {}", addr, e);
         });
+        println!("bind success!!");
         Server::builder(incoming)
     }
 
@@ -165,6 +166,7 @@ where
         cx: &mut task::Context<'_>,
     ) -> Poll<Option<crate::Result<Connecting<IO, S::Future, E>>>> {
         let me = self.project();
+        println!("polling...");
         match ready!(me.make_service.poll_ready_ref(cx)) {
             Ok(()) => (),
             Err(e) => {
